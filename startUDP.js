@@ -4,12 +4,8 @@ import udp from 'react-native-udp';
 export default function startUDPReceive() {
   const allDevices = [
     {
-      pcName:"adamol",
-      pcIp:"deneme"
-    },
-    {
-      pcName:"adamol",
-      pcIp:"deneme"
+      pcName:"",
+      pcIp:""
     }
   ];
   const socket = udp.createSocket('udp4');
