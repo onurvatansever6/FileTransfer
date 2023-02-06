@@ -20,6 +20,9 @@ const App: React.FC = () => {
   const [docResult, setResult] = React.useState<Array<DocumentPickerResponse>>();
   const [allDevices, setAllDevices] = useState<Array<{ pcName: string, pcIp: string }>>([]);
   const [displayText, setDisplayText] = useState('');
+  const [displayTextSocket, setDisplayTextSocket] = useState('');
+  const [displayTextData, setDisplayTextData] = useState('');
+  const [displayTextButtons, setDisplayTextButtons] = useState('');
 
   // const handleScan = () => {
   //   setScanInProgress(true);
@@ -33,16 +36,20 @@ const App: React.FC = () => {
 
   const handleScan = async () => {
     setScanInProgress(true);
-    setDisplayText("butona basıldı")
+    setDisplayText("butona basıldı");
+    setDisplayTextSocket("socket açıldı 8090a bağlı");
+
     const receivedMessage = await startUDP();
     const { pcName, pcIp } = receivedMessage;
     setAllDevices(receivedMessage);
+    setDisplayTextData("veriler geldi")
     setPcName(pcName);
     setPcIP(pcIp);
     setScanInProgress(false);
     setScanButtons(allDevices.map(device => (
       <Button title={`Connect to ${device.pcName}`} onPress={() => console.log(`Connecting to ${device.pcName} at ${device.pcIp}`)} />
     )));
+    setDisplayTextButtons("butonlar yaratıldı");
   };
 
   const openDocumentFile = async () => {
@@ -67,6 +74,9 @@ const App: React.FC = () => {
         <Button onPress={handleScan} title="deneme"></Button>
         <Text>-------------------------------------------</Text>
         <Text>{displayText}</Text>
+        <Text>{displayTextSocket}</Text>
+        <Text>{displayTextData}</Text>
+        <Text>{displayTextButtons}</Text>
         <View>
           {ButtonsDeneme.map((button, index) => (
             <View key={index}>{button}</View>
