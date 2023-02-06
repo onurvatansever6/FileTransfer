@@ -7,8 +7,9 @@
 
 import React, { ReactNode, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
-import startUDPReceive from './startUDP';
+// import startUDPReceive from './startUDP';
 import DocumentPicker, { DocumentPickerResponse, DirectoryPickerResponse } from 'react-native-document-picker';
+import startUDP from './startUDP';
 
 
 const App: React.FC = () => {
@@ -17,14 +18,27 @@ const App: React.FC = () => {
   const [ButtonsDeneme, setScanButtons] = useState<ReactNode[]>([]);
   const [scanInProgress, setScanInProgress] = useState(false);
   const [docResult, setResult] = React.useState<Array<DocumentPickerResponse>>();
+  const [allDevices, setAllDevices] = useState<Array<{ pcName: string, pcIp: string }>>([]);
+  const [displayText, setDisplayText] = useState('');
+
+  // const handleScan = () => {
+  //   setScanInProgress(true);
+  //   startUDPReceive(setAllDevices);
+  //   setScanInProgress(false);
+  //   setScanButtons(allDevices.map(device => (
+  //     <Button title={`Connect to ${device.pcName}`} onPress={() => console.log(`Connecting to ${device.pcName} at ${device.pcIp}`)} />
+  //   )));
+
+  // };
 
   const handleScan = async () => {
     setScanInProgress(true);
-    const allDevices = await startUDPReceive();
-    allDevices.forEach(element => {
-      setPcName(element.pcName)
-      setPcIP(element.pcIp)
-    });
+    setDisplayText("butona basıldı")
+    const receivedMessage = await startUDP();
+    const { pcName, pcIp } = receivedMessage;
+    setAllDevices(receivedMessage);
+    setPcName(pcName);
+    setPcIP(pcIp);
     setScanInProgress(false);
     setScanButtons(allDevices.map(device => (
       <Button title={`Connect to ${device.pcName}`} onPress={() => console.log(`Connecting to ${device.pcName} at ${device.pcIp}`)} />
@@ -52,11 +66,14 @@ const App: React.FC = () => {
       <View >
         <Button onPress={handleScan} title="deneme"></Button>
         <Text>-------------------------------------------</Text>
+        <Text>{displayText}</Text>
         <View>
           {ButtonsDeneme.map((button, index) => (
             <View key={index}>{button}</View>
           ))}
         </View>
+        <Text>PC NAME ya da IP aldiysam benim altimda gözükür</Text>
+        <Text>{pcName}{pcIP}</Text>
       </View>
       
       {scanInProgress ? (
