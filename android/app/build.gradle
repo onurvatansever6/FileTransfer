@@ -118,9 +118,9 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file('onur_keyname.keystore')
+            storeFile file('onurkey.keystore')
             storePassword 'adamol123'
-            keyAlias 'your_key_alias'
+            keyAlias 'onur_alias'
             keyPassword 'adamol123'
         }
     }

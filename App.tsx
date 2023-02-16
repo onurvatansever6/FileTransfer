@@ -5,90 +5,136 @@
  * @format
  */
 
-import React, { ReactNode, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Button, Dimensions } from 'react-native';
+import React, { ReactNode, useState } from 'react';
+import { View, Text, Button, Dimensions  } from 'react-native';
 import dgram from 'react-native-udp';
-// import startUDPReceive from './startUDP';
-// import DocumentPicker, { DocumentPickerResponse, DirectoryPickerResponse } from 'react-native-document-picker';
-// import startUDP from './startUDP';
+import DocumentPicker from 'react-native-document-picker';
+import fs from 'react-native-fs';
 
-const percent5 = Dimensions.get('window').width / 20
+const percent5 = Dimensions.get('window').width / 20;
 
 
 const App: React.FC = () => {
-  const [pcName, setPcName] = useState(''); 
-  const [pcIP, setPcIP] = useState(''); 
+  
+
+  const [pcName, setPcName] = useState<any>([]);
+  const [statePcIP, setPcIP] = useState<any>([]); 
   const [ButtonsDeneme, setScanButtons] = useState<ReactNode[]>([]);
   const [scanInProgress, setScanInProgress] = useState(false);
-  const [allDevices, setAllDevices] = useState<Array<{ pcName: any, pcIp: any}>>([]);
-  const [displayText, setDisplayText] = useState('');
-  const [displayTextSocket, setDisplayTextSocket] = useState('');
-  const [displayTextData, setDisplayTextData] = useState('');
-  const [displayTextButtons, setDisplayTextButtons] = useState('');
+  const [selectedFileUri, setSelectedFileUri] = useState('');
+  const [selectedFileName, setSelectedFileName] = useState('');
+  const [selectedFileSize, setSelectedFileSize] = useState(Number);
+  const [connectableDevice, setConnectableDevice] = useState<any>({});
+  const [allDevices, setAllDevices] = useState<any>([]);
+  const [debugString, setDebugString] = useState<any>([])
+  
+  const CHUNK_SIZE = 1024;
+
+  const handleDocumentPicker = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [DocumentPicker.types.allFiles],
+      });
+      if (result[0].name && result[0].size && result[0].uri) {
+        setSelectedFileUri(result[0].uri);
+        setSelectedFileName(result[0].name);
+        setSelectedFileSize(result[0].size);
+      }
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('Cancelled from picker');
+      } else {
+        throw err;
+      }
+    }
+  };
 
 
-  // const openDocumentFile = async () => {
-  //   try{
-  //     const res = await DocumentPicker.pick({
-  //       type: [DocumentPicker.types.allFiles]
-  //     })
-  //     setResult(res);
-  //   }
-  //   catch (err) {
-  //     if (DocumentPicker.isCancel(err)){
+  const sendFile = async () => {
+    console.log("benim pc ip yazıyom connection açmadan önce: ", statePcIP[0]);
+    setDebugString(prev => [...prev, "benim pc ip yazıyom connection açmadan önce: " + statePcIP[0] + "\n"])
+    const websocketHost = "ws://" + statePcIP[0] + ":3232";
+    console.log("websockethost string: ", websocketHost);
+    setDebugString(prev => [...prev, "websockethost string: " + websocketHost + "\n"])
+    const socket = new WebSocket(websocketHost);
+    console.log("socket: ", socket);
+
+    socket.onopen = () => {
+      console.log('Connected to the server');
+      setDebugString(prev => [...prev, "Connected to the server\n"])
+    };
+
+    socket.onerror = (error) => {
+      console.log(error);
+      setDebugString(prev => [...prev, "error connecting to server:" + error + "\n"])
+    };
+
+    socket.onclose = () => {
+      console.log('Disconnected from the server');
+      setDebugString(prev => [...prev, "Disconnected from the server\n"])
+      debugString.join('')
+    };
+
+    socket.onmessage = (event) => {
+      console.log('Received message:', event.data);
+    };
+
+    fs.readFile(selectedFileUri, 'base64')
+      .then((content) => {
+        socket.send("fileName:");
+        socket.send(selectedFileName);
+        console.log("filename gönderdim pc ye");
+        setDebugString(prev => [...prev, "filename gönderdim pc ye\n"])
+        const chunks = [];
+        for (let i = 0; i < content.length; i += CHUNK_SIZE) {
+          const chunk = content.slice(i, i + CHUNK_SIZE);
+          chunks.push(chunk);
+        };
+
+        for (const chunk of chunks) {
+          socket.send(chunk);
+        };
+        socket.send("bitti");
+        console.log("chunk gönderme bitti");
+        setDebugString(prev => [...prev, "chunk gönderme bitti\n"])
         
-  //     } else {
-  //       throw err; 
-  //     }
-  //   }
-  // }; 
-
-  
-  const remotePort = 5000;
-  const remoteHost = '10.0.2.2';
-  const socket = dgram.createSocket('udp4')
-  socket.bind(8081)
-  
-  // socket.once('listening', function () {
-  //   socket.send('WHO', undefined, undefined, remotePort, remoteHost, function (err) {
-  //     if (err) throw err
-
-  //     console.log('Message sent!')
-  //   })
-  // })
-
-  socket.on('message', function (msg,rinfo){
-    console.log(msg.toString());
-  })
-
-  const sendMessage = () => {
-    socket.send('WHO', undefined, undefined, remotePort, remoteHost, function (err) {
-      if (err) throw err
-
-      console.log('Message sent!')
-    })
-  }
+      })
+      .catch((err) => {
+        console.log('error', err);
+      })
+  };
   
   const handleScan = () => {
+    const remotePort = 5000;
+    const remoteHost = '255.255.255.255';
+    const socket = dgram.createSocket('udp4');
+    socket.bind(34542);
+    socket.once('listening', function() {
+      socket.send('WHO', undefined, undefined, remotePort, remoteHost, function(err) {
+        if (err) throw err
+        setDebugString(prev => [...prev, "PC'ye mesaj gönderdim\n"])
+        console.log('Message sent!')
+      })
+    })
     socket.on('message', function (msg, rinfo) {
-      let [pcName, pcIp] = msg.toString().split(":");
-      console.log('rinfo: ', rinfo);
-      console.log('Message received', pcName, pcIp);
-      let connectedDevice = ({ pcName, pcIp });
-      const addDevice = (connectedDevice: { pcName: any, pcIp: any}) => {
-        setAllDevices([...allDevices, connectedDevice]);
-      };
-      addDevice(connectedDevice);
-      setScanButtons(allDevices.map(device => (
-            <Button title={`Connect to ${device.pcName}`} onPress={() => console.log(`Connecting to ${device.pcName} at ${device.pcIp}`)} />
-          )));
-      setPcIP(pcIp);
-      setPcName(pcName);
+      const [pcNameFromMsg, pcIpFromMsg] = msg.toString().split(":");
 
-      setTimeout(() => {
-        socket.close();
-        console.log('socket closed after 10 sec')
-      }, 10000);
+      setPcIP(prevIP => [...prevIP, pcIpFromMsg]);
+      setPcName(prevName => [...prevName, pcNameFromMsg]);
+
+      console.log('rinfo: ', rinfo);
+      setDebugString(prev => [...prev, "rinfo:" + rinfo + "\n"])
+      console.log('pc den gelen mesajın içeriği:', pcNameFromMsg, pcIpFromMsg);
+      setDebugString(prev => [...prev, "pcname:" + pcNameFromMsg + "pcip:" + pcIpFromMsg + "\n"])
+
+      setConnectableDevice(connectable => Object.assign(connectable, {deviceName: pcNameFromMsg, deviceIP: pcIpFromMsg}));
+      setAllDevices(prevDevices => prevDevices.push(connectableDevice));
+      setScanButtons(allDevices.map(device => (
+            <Button title={`Connect to ${device.deviceName}`} onPress={() => console.log(`Connecting to ${device.deviceIP} at ${device.deviceIP}`)} />
+          )));
+      socket.close();
+      console.log("udp socketi kapattım");
+      setDebugString(prev => [...prev, "udp socketi kapattım\n"])
     });
   }
 
@@ -106,50 +152,30 @@ const App: React.FC = () => {
 
 
       <View style={{ backgroundColor: '#E0ECEA', flex: 9 , justifyContent: 'center', alignContent: 'center' }}>
-        <Button title="send message" onPress={sendMessage}></Button>
+        {debugString && (
+          <Text style={{color: 'black'}}>{debugString}</Text>
+        )}
+        {statePcIP[0] && (
+          <Text style={{ color: 'black' }}>{statePcIP[0]}</Text>
+        )}
         <Button onPress={handleScan} title="Scan"></Button>
         <View>
           {ButtonsDeneme.map((button, index) => (
             <View key={index}>{button}</View>
           ))}
-        </View>
+        </View>  
+      </View>
+
+      <View>
+        <Button title="Select Document" onPress={handleDocumentPicker} />
+        {selectedFileName && (
+          <Button title="Send Document" onPress={sendFile} />
+        )}
+        {selectedFileName && (
+          <Text>Selected document: {selectedFileName}</Text>
+        )}
       </View>
     </>
-    
-
-    
-
-    
-    // <View style={styles.container}>
-    //   <View >
-    //     <Button onPress={handleScan} title="deneme"></Button>
-    //     <Text>-------------------------------------------</Text>
-    //     <Text>{displayText}</Text>
-    //     <Text>{displayTextSocket}</Text>
-    //     <Text>{displayTextData}</Text>
-    //     <Text>{displayTextButtons}</Text>
-    //     <View>
-    //       {ButtonsDeneme.map((button, index) => (
-    //         <View key={index}>{button}</View>
-    //       ))}
-    //     </View>
-    //     <Text>PC NAME ya da IP aldiysam benim altimda gözükür</Text>
-    //     <Text>{pcName}{pcIP}</Text>
-    //   </View>
-      
-    //   {scanInProgress ? (
-    //     <View style={[styles.scanningIndicator, { backgroundColor: "red" }]} />
-    //   ) : (
-    //     pcName && pcIP ? (
-    //       <View style={[styles.scanningIndicator, { backgroundColor: "green" }]} />
-    //     ) : (
-    //       <View style={[styles.scanningIndicator, { backgroundColor: "red" }]} />
-    //     )
-    //   )}
-    //   <Text style={styles.connectionText}>
-    //     {pcName && pcIP ? "Connected" : "Disconnected"}
-    //   </Text>
-    // </View>
   );
   
 };
