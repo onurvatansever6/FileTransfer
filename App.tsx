@@ -20,14 +20,14 @@ const App: React.FC = () => {
   const [pcName, setPcName] = useState<any>([]);
   const [statePcIP, setPcIP] = useState<any>([]); 
   const [ButtonsDeneme, setScanButtons] = useState<ReactNode[]>([]);
-  const [scanInProgress, setScanInProgress] = useState(false);
+  const [scanInProgress, setScanInProgress] = useState(true);
   const [selectedFileUri, setSelectedFileUri] = useState('');
   const [selectedFileName, setSelectedFileName] = useState('');
   const [selectedFileSize, setSelectedFileSize] = useState(Number);
   const [connectableDevice, setConnectableDevice] = useState<any>({});
   const [allDevices, setAllDevices] = useState<any>([]);
-  const [debugString, setDebugString] = useState<any>([])
-  
+  const [debugString, setDebugString] = useState<any>([]);
+   
   const CHUNK_SIZE = 1024;
 
   const handleDocumentPicker = async () => {
@@ -49,6 +49,9 @@ const App: React.FC = () => {
     }
   };
 
+  const showConnected = () => {
+    setScanInProgress(false);
+  }
 
   const sendFile = async () => {
     console.log("benim pc ip yazıyom connection açmadan önce: ", statePcIP[0]);
@@ -106,7 +109,7 @@ const App: React.FC = () => {
   
   const handleScan = () => {
     const remotePort = 5000;
-    const remoteHost = '255.255.255.255';
+    const remoteHost = '10.0.2.2';
     const socket = dgram.createSocket('udp4');
     socket.bind(34542);
     socket.once('listening', function() {
@@ -130,7 +133,7 @@ const App: React.FC = () => {
       setConnectableDevice(connectable => Object.assign(connectable, {deviceName: pcNameFromMsg, deviceIP: pcIpFromMsg}));
       setAllDevices(prevDevices => prevDevices.push(connectableDevice));
       setScanButtons(allDevices.map(device => (
-            <Button title={`Connect to ${device.deviceName}`} onPress={() => console.log(`Connecting to ${device.deviceIP} at ${device.deviceIP}`)} />
+            <Button title={`Connect to ${device.deviceName}`} onPress={showConnected} />
           )));
       socket.close();
       console.log("udp socketi kapattım");
@@ -145,8 +148,16 @@ const App: React.FC = () => {
       <View style={{ backgroundColor: '#1C1321', flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: percent5 }}>
         <Text style={{ backgroundColor: '#F6F8FA', width: 3 * percent5, textAlign: 'center', borderRadius: 0.2 * percent5 }}>HOME</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={{ marginRight: percent5 / 2 , color: '#F6F8FA' }}>Disconnected</Text>
-          <Text style={{ backgroundColor: '#C85348', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5 }}></Text>
+          {scanInProgress ? (
+            <Text style={{ marginRight: percent5 / 2 , color: '#F6F8FA' }}>Disconnected</Text>
+          ) : (
+            <Text style={{ marginRight: percent5 / 2 , color: '#F6F8FA' }}>{pcName[0]}</Text>
+          )}
+          {scanInProgress ? (
+            <Text style={{ backgroundColor: '#C85348', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5 }}></Text>
+          ) : (
+            <Text style={{ backgroundColor: 'green', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5 }}></Text>
+          )}
         </View>
       </View>
 
@@ -159,11 +170,13 @@ const App: React.FC = () => {
           <Text style={{ color: 'black' }}>{statePcIP[0]}</Text>
         )}
         <Button onPress={handleScan} title="Scan"></Button>
-        <View>
+        {scanInProgress && (
+          <View style={{marginTop: 10 }}>
           {ButtonsDeneme.map((button, index) => (
             <View key={index}>{button}</View>
           ))}
-        </View>  
+        </View>
+        )}
       </View>
 
       <View>
