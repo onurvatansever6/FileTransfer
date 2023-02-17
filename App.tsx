@@ -15,8 +15,6 @@ const percent5 = Dimensions.get('window').width / 20;
 
 
 const App: React.FC = () => {
-  
-
   const [pcName, setPcName] = useState<any>([]);
   const [statePcIP, setPcIP] = useState<any>([]); 
   const [ButtonsDeneme, setScanButtons] = useState<ReactNode[]>([]);
@@ -29,6 +27,10 @@ const App: React.FC = () => {
   const [debugString, setDebugString] = useState<any>([]);
    
   const CHUNK_SIZE = 1024;
+  
+  const remotePort = 5000;
+  const remoteHost = '10.0.2.2';
+  const socket = dgram.createSocket('udp4');
 
   const handleDocumentPicker = async () => {
     try {
@@ -51,6 +53,11 @@ const App: React.FC = () => {
 
   const showConnected = () => {
     setScanInProgress(false);
+    socket.send('CONNECT', undefined, undefined, remotePort, remoteHost, function(err) {
+      if (err) throw err
+      setDebugString(prev => [...prev, "PC'ye mesaj gönderdim\n"])
+      console.log('Message sent!')
+    })
   }
 
   const sendFile = async () => {
@@ -84,8 +91,7 @@ const App: React.FC = () => {
 
     fs.readFile(selectedFileUri, 'base64')
       .then((content) => {
-        socket.send("fileName:");
-        socket.send(selectedFileName);
+        socket.send("fileName:"+ selectedFileName);
         console.log("filename gönderdim pc ye");
         setDebugString(prev => [...prev, "filename gönderdim pc ye\n"])
         const chunks = [];
@@ -97,7 +103,7 @@ const App: React.FC = () => {
         for (const chunk of chunks) {
           socket.send(chunk);
         };
-        socket.send("bitti");
+        socket.close();
         console.log("chunk gönderme bitti");
         setDebugString(prev => [...prev, "chunk gönderme bitti\n"])
         
@@ -108,9 +114,6 @@ const App: React.FC = () => {
   };
   
   const handleScan = () => {
-    const remotePort = 5000;
-    const remoteHost = '10.0.2.2';
-    const socket = dgram.createSocket('udp4');
     socket.bind(34542);
     socket.once('listening', function() {
       socket.send('WHO', undefined, undefined, remotePort, remoteHost, function(err) {
@@ -135,9 +138,6 @@ const App: React.FC = () => {
       setScanButtons(allDevices.map(device => (
             <Button title={`Connect to ${device.deviceName}`} onPress={showConnected} />
           )));
-      socket.close();
-      console.log("udp socketi kapattım");
-      setDebugString(prev => [...prev, "udp socketi kapattım\n"])
     });
   }
 
