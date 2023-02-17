@@ -6,6 +6,7 @@
  */
 
 import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React, { ReactNode, useState } from 'react';
 import { View, Text, Button, Dimensions  } from 'react-native';
 import dgram from 'react-native-udp';
@@ -13,6 +14,23 @@ import DocumentPicker from 'react-native-document-picker';
 import fs from 'react-native-fs';
 
 const percent5 = Dimensions.get('window').width / 20;
+const Tab = createBottomTabNavigator();
+
+function ScanScreen() {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Scan Screen</Text>
+    </View>
+  );
+}
+
+function SettingsScreen() {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Settings Screen</Text>
+    </View>
+  );
+}
 
 
 const App: React.FC = () => {
@@ -63,7 +81,7 @@ const App: React.FC = () => {
 
   const sendFile = async () => {
     console.log("benim pc ip yazıyom connection açmadan önce: ", statePcIP[0]);
-    setDebugString(prev => [...prev, "benim pc ip yazıyom connection açmadan önce: " + statePcIP[0] + "\n"])
+    setDebugString(prev => [...prev, "benim pc ip yazıyom connection açmadan önce: " + statePcIP[0] + "\n"]);
     const websocketHost = "ws://" + statePcIP[0] + ":3232";
     console.log("websockethost string: ", websocketHost);
     setDebugString(prev => [...prev, "websockethost string: " + websocketHost + "\n"])
@@ -72,18 +90,18 @@ const App: React.FC = () => {
 
     socket.onopen = () => {
       console.log('Connected to the server');
-      setDebugString(prev => [...prev, "Connected to the server\n"])
+      setDebugString(prev => [...prev, "Connected to the server\n"]);
     };
 
     socket.onerror = (error) => {
       console.log(error);
-      setDebugString(prev => [...prev, "error connecting to server:" + error + "\n"])
+      setDebugString(prev => [...prev, "error connecting to server:" + error + "\n"]);
     };
 
     socket.onclose = () => {
       console.log('Disconnected from the server');
-      setDebugString(prev => [...prev, "Disconnected from the server\n"])
-      debugString.join('')
+      setDebugString(prev => [...prev, "Disconnected from the server\n"]);
+      debugString.join('');
     };
 
     socket.onmessage = (event) => {
@@ -94,7 +112,7 @@ const App: React.FC = () => {
       .then((content) => {
         socket.send("fileName:"+ selectedFileName);
         console.log("filename gönderdim pc ye");
-        setDebugString(prev => [...prev, "filename gönderdim pc ye\n"])
+        setDebugString(prev => [...prev, "filename gönderdim pc ye\n"]);
         const chunks = [];
         for (let i = 0; i < content.length; i += CHUNK_SIZE) {
           const chunk = content.slice(i, i + CHUNK_SIZE);
@@ -106,7 +124,7 @@ const App: React.FC = () => {
         };
         socket.close();
         console.log("chunk gönderme bitti");
-        setDebugString(prev => [...prev, "chunk gönderme bitti\n"])
+        setDebugString(prev => [...prev, "chunk gönderme bitti\n"]);
         
       })
       .catch((err) => {
@@ -119,8 +137,8 @@ const App: React.FC = () => {
     socket.once('listening', function() {
       socket.send('WHO', undefined, undefined, remotePort, remoteHost, function(err) {
         if (err) throw err
-        setDebugString(prev => [...prev, "PC'ye mesaj gönderdim\n"])
-        console.log('Message sent!')
+        setDebugString(prev => [...prev, "PC'ye mesaj gönderdim\n"]);
+        console.log('Message sent!');
       })
     })
     socket.on('message', function (msg, rinfo) {
@@ -130,9 +148,9 @@ const App: React.FC = () => {
       setPcName(prevName => [...prevName, pcNameFromMsg]);
 
       console.log('rinfo: ', rinfo);
-      setDebugString(prev => [...prev, "rinfo:" + rinfo + "\n"])
+      setDebugString(prev => [...prev, "rinfo:" + rinfo + "\n"]);
       console.log('pc den gelen mesajın içeriği:', pcNameFromMsg, pcIpFromMsg);
-      setDebugString(prev => [...prev, "pcname:" + pcNameFromMsg + "pcip:" + pcIpFromMsg + "\n"])
+      setDebugString(prev => [...prev, "pcname:" + pcNameFromMsg + "pcip:" + pcIpFromMsg + "\n"]);
 
       setConnectableDevice(connectable => Object.assign(connectable, {deviceName: pcNameFromMsg, deviceIP: pcIpFromMsg}));
       setAllDevices(prevDevices => prevDevices.push(connectableDevice));
@@ -146,22 +164,19 @@ const App: React.FC = () => {
 
   return (
     <NavigationContainer>
-      <View style={{ backgroundColor: '#1C1321', flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: percent5 }}>
-        <Text style={{ backgroundColor: '#F6F8FA', width: 3 * percent5, textAlign: 'center', borderRadius: 0.2 * percent5 }}>HOME</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {scanInProgress ? (
-            <Text style={{ marginRight: percent5 / 2, color: '#F6F8FA' }}>Disconnected</Text>
-          ) : (
-            <Text style={{ marginRight: percent5 / 2, color: '#F6F8FA' }}>{pcName[0]}</Text>
-          )}
-          {scanInProgress ? (
-            <Text style={{ backgroundColor: '#C85348', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5 }}></Text>
-          ) : (
-            <Text style={{ backgroundColor: 'green', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5 }}></Text>
-          )}
-        </View>
+      
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: '#E0ECEA', marginRight: percent5, marginTop: percent5 }}>
+        {scanInProgress ? (
+          <Text style={{ marginRight: percent5 / 2, color: 'black' }}>Disconnected</Text>
+        ) : (
+          <Text style={{ marginRight: percent5 / 2, color: 'black' }}>{pcName[0]}</Text>
+        )}
+        {scanInProgress ? (
+          <Text style={{ backgroundColor: '#C85348', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5 }}></Text>
+        ) : (
+          <Text style={{ backgroundColor: 'green', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5 }}></Text>
+        )}
       </View>
-
 
       <View style={{ backgroundColor: '#E0ECEA', flex: 9, justifyContent: 'center', alignContent: 'center' }}>
         {debugString && (
@@ -184,11 +199,15 @@ const App: React.FC = () => {
         <Button title="Select Document" onPress={handleDocumentPicker} />
         {selectedFileName && (
           <Button title="Send Document" onPress={sendFile} />
-        )}
+        )}  
         {selectedFileName && (
           <Text>Selected document: {selectedFileName}</Text>
         )}
       </View>
+      <Tab.Navigator>
+        <Tab.Screen name="Home" component={ScanScreen} />
+        <Tab.Screen name="Settings" component={SettingsScreen} />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 
