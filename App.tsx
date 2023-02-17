@@ -6,32 +6,14 @@
  */
 
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React, { ReactNode, useState } from 'react';
 import { View, Text, Button, Dimensions  } from 'react-native';
 import dgram from 'react-native-udp';
 import DocumentPicker from 'react-native-document-picker';
 import fs from 'react-native-fs';
+import TabNavigator from './TabNavigator';
 
 const percent5 = Dimensions.get('window').width / 20;
-const Tab = createBottomTabNavigator();
-
-function ScanScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Scan Screen</Text>
-    </View>
-  );
-}
-
-function SettingsScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Settings Screen</Text>
-    </View>
-  );
-}
-
 
 const App: React.FC = () => {
   const [pcName, setPcName] = useState<any>([]);
@@ -204,10 +186,7 @@ const App: React.FC = () => {
           <Text>Selected document: {selectedFileName}</Text>
         )}
       </View>
-      <Tab.Navigator>
-        <Tab.Screen name="Home" component={ScanScreen} />
-        <Tab.Screen name="Settings" component={SettingsScreen} />
-      </Tab.Navigator>
+      <TabNavigator />
     </NavigationContainer>
   );
 
