@@ -5,6 +5,7 @@
  * @format
  */
 
+import { NavigationContainer } from '@react-navigation/native';
 import React, { ReactNode, useState } from 'react';
 import { View, Text, Button, Dimensions  } from 'react-native';
 import dgram from 'react-native-udp';
@@ -144,14 +145,14 @@ const App: React.FC = () => {
   
 
   return (
-    <>
+    <NavigationContainer>
       <View style={{ backgroundColor: '#1C1321', flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: percent5 }}>
         <Text style={{ backgroundColor: '#F6F8FA', width: 3 * percent5, textAlign: 'center', borderRadius: 0.2 * percent5 }}>HOME</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {scanInProgress ? (
-            <Text style={{ marginRight: percent5 / 2 , color: '#F6F8FA' }}>Disconnected</Text>
+            <Text style={{ marginRight: percent5 / 2, color: '#F6F8FA' }}>Disconnected</Text>
           ) : (
-            <Text style={{ marginRight: percent5 / 2 , color: '#F6F8FA' }}>{pcName[0]}</Text>
+            <Text style={{ marginRight: percent5 / 2, color: '#F6F8FA' }}>{pcName[0]}</Text>
           )}
           {scanInProgress ? (
             <Text style={{ backgroundColor: '#C85348', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5 }}></Text>
@@ -162,20 +163,20 @@ const App: React.FC = () => {
       </View>
 
 
-      <View style={{ backgroundColor: '#E0ECEA', flex: 9 , justifyContent: 'center', alignContent: 'center' }}>
+      <View style={{ backgroundColor: '#E0ECEA', flex: 9, justifyContent: 'center', alignContent: 'center' }}>
         {debugString && (
-          <Text style={{color: 'black'}}>{debugString}</Text>
+          <Text style={{ color: 'black' }}>{debugString}</Text>
         )}
         {statePcIP[0] && (
           <Text style={{ color: 'black' }}>{statePcIP[0]}</Text>
         )}
         <Button onPress={handleScan} title="Scan"></Button>
         {scanInProgress && (
-          <View style={{marginTop: 10 }}>
-          {ButtonsDeneme.map((button, index) => (
-            <View key={index}>{button}</View>
-          ))}
-        </View>
+          <View style={{ marginTop: 10 }}>
+            {ButtonsDeneme.map((button, index) => (
+              <View key={index}>{button}</View>
+            ))}
+          </View>
         )}
       </View>
 
@@ -188,9 +189,9 @@ const App: React.FC = () => {
           <Text>Selected document: {selectedFileName}</Text>
         )}
       </View>
-    </>
+    </NavigationContainer>
   );
-  
+
 };
 
 export default App;
