@@ -5,13 +5,12 @@
  * @format
  */
 
-import { NavigationContainer } from '@react-navigation/native';
 import React, { ReactNode, useState } from 'react';
-import { View, Text, Button, Dimensions  } from 'react-native';
+import { View, Text, Button, Dimensions, TouchableOpacity, StyleSheet  } from 'react-native';
 import dgram from 'react-native-udp';
 import DocumentPicker from 'react-native-document-picker';
 import fs from 'react-native-fs';
-import TabNavigator from './TabNavigator';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const percent5 = Dimensions.get('window').width / 20;
 
@@ -20,6 +19,8 @@ const App: React.FC = () => {
   const [statePcIP, setPcIP] = useState<any>([]); 
   const [ButtonsDeneme, setScanButtons] = useState<ReactNode[]>([]);
   const [scanInProgress, setScanInProgress] = useState(true);
+  const [isSendFile, setIsSendFile] = useState(false);
+  const [isReadySendFile, setReadyIsSendFile] = useState(false);
   const [selectedFileUri, setSelectedFileUri] = useState('');
   const [selectedFileName, setSelectedFileName] = useState('');
   const [selectedFileSize, setSelectedFileSize] = useState(Number);
@@ -33,15 +34,17 @@ const App: React.FC = () => {
   const remoteHost = '10.0.2.2';
   const socket = dgram.createSocket('udp4');
 
-  const handleDocumentPicker = async () => {
+  const handleImages = async () => {
     try {
       const result = await DocumentPicker.pick({
-        type: [DocumentPicker.types.allFiles],
+        type: [DocumentPicker.types.images, DocumentPicker.types.video],
       });
       if (result[0].name && result[0].size && result[0].uri) {
         setSelectedFileUri(result[0].uri);
         setSelectedFileName(result[0].name);
         setSelectedFileSize(result[0].size);
+        setIsSendFile(false);
+        setReadyIsSendFile(true);
       }
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
@@ -51,6 +54,68 @@ const App: React.FC = () => {
       }
     }
   };
+
+  const handleDocuments = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: 
+        [
+          DocumentPicker.types.doc, 
+          DocumentPicker.types.docx,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.ppt,
+          DocumentPicker.types.pptx,
+          DocumentPicker.types.xls,
+          DocumentPicker.types.xlsx,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.plainText
+        ],
+      });
+      if (result[0].name && result[0].size && result[0].uri) {
+        setSelectedFileUri(result[0].uri);
+        setSelectedFileName(result[0].name);
+        setSelectedFileSize(result[0].size);
+        setIsSendFile(false);
+        setReadyIsSendFile(true);
+      }
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('Cancelled from picker');
+      } else {
+        throw err;
+      }
+    }
+  };
+
+  const handleOther = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [DocumentPicker.types.allFiles]
+      });
+      if (result[0].name && result[0].size && result[0].uri) {
+        setSelectedFileUri(result[0].uri);
+        setSelectedFileName(result[0].name);
+        setSelectedFileSize(result[0].size);
+        setIsSendFile(false);
+        setReadyIsSendFile(true);
+      }
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('Cancelled from picker');
+      } else {
+        throw err;
+      }
+    }
+  };
+
+  const showIsSend = () => {
+    if (isSendFile){
+      setIsSendFile(false);
+    }
+    if (!isSendFile){
+      setIsSendFile(true);
+    }
+  }
 
   const showConnected = () => {
     setScanInProgress(false);
@@ -145,18 +210,17 @@ const App: React.FC = () => {
   
 
   return (
-    <NavigationContainer>
-      
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: '#E0ECEA', marginRight: percent5, marginTop: percent5 }}>
+    <>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: '#E0ECEA'}}>
         {scanInProgress ? (
-          <Text style={{ marginRight: percent5 / 2, color: 'black' }}>Disconnected</Text>
+          <Text style={{ marginRight: percent5 / 3, color: 'black', marginTop: percent5 / 2}}>Disconnected</Text>
         ) : (
-          <Text style={{ marginRight: percent5 / 2, color: 'black' }}>{pcName[0]}</Text>
+          <Text style={{ marginRight: percent5 / 3, color: 'black', marginTop: percent5 / 2 }}>{pcName[0]}</Text>
         )}
         {scanInProgress ? (
-          <Text style={{ backgroundColor: '#C85348', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5 }}></Text>
+          <Text style={{ backgroundColor: '#C85348', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5, marginRight: percent5 / 2, marginTop: percent5 / 2 }}></Text>
         ) : (
-          <Text style={{ backgroundColor: 'green', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5 }}></Text>
+          <Text style={{ backgroundColor: 'green', width: 1.8 * percent5, height: 1.8 * percent5, borderRadius: 0.9 * percent5, marginRight: percent5 / 2, marginTop: percent5 / 2 }}></Text>
         )}
       </View>
 
@@ -167,7 +231,9 @@ const App: React.FC = () => {
         {statePcIP[0] && (
           <Text style={{ color: 'black' }}>{statePcIP[0]}</Text>
         )}
-        <Button onPress={handleScan} title="Scan"></Button>
+        {scanInProgress && (
+          <Button onPress={handleScan} title="Scan"></Button>
+        )}
         {scanInProgress && (
           <View style={{ marginTop: 10 }}>
             {ButtonsDeneme.map((button, index) => (
@@ -176,18 +242,85 @@ const App: React.FC = () => {
           </View>
         )}
       </View>
+      
+      {isReadySendFile && (
+          <TouchableOpacity style={{
+            position: 'absolute',
+            bottom: percent5 / 1.3,
+            left: percent5 / 2,
+            backgroundColor: 'blue',
+            width: 3.5 * percent5,
+            height: 3.5 * percent5,
+            borderRadius: 1.75 * percent5,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }} onPress={sendFile}>
+            <Ionicons name="send" size={30} color="white" />
+          </TouchableOpacity>
+        )}
+      
 
-      <View>
-        <Button title="Select Document" onPress={handleDocumentPicker} />
-        {selectedFileName && (
-          <Button title="Send Document" onPress={sendFile} />
-        )}  
-        {selectedFileName && (
-          <Text>Selected document: {selectedFileName}</Text>
+      <View style={{ backgroundColor: '#E0ECEA' }}>
+        <TouchableOpacity style={{
+          position: 'absolute',
+          bottom: percent5 / 1.3,
+          right: percent5 / 2,
+          backgroundColor: 'blue',
+          width: 3.5 * percent5,
+          height: 3.5 * percent5,
+          borderRadius: 1.75 * percent5,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }} onPress={showIsSend}>
+          <Ionicons name="add" size={30} color="white" />
+        </TouchableOpacity>
+        {isSendFile && (
+          <View>
+            <TouchableOpacity style={{
+              position: 'absolute',
+              bottom: 5 * percent5,
+              right: percent5,
+              backgroundColor: 'blue',
+              width: 3 * percent5,
+              height: 3 * percent5,
+              borderRadius: 1.5 * percent5,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }} onPress={handleOther}>
+              <Ionicons name="ellipsis-horizontal-sharp" size={30} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={{
+              position: 'absolute',
+              bottom: 3.75 * percent5,
+              right: 4 * percent5,
+              backgroundColor: 'blue',
+              width: 3 * percent5,
+              height: 3 * percent5,
+              borderRadius: 1.5 * percent5,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }} onPress={handleImages}>
+              <Ionicons name="image" size={30} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={{
+              position: 'absolute',
+              bottom: percent5 / 2,
+              right: 4.5 * percent5,
+              backgroundColor: 'blue',
+              width: 3 * percent5,
+              height: 3 * percent5,
+              borderRadius: 1.5 * percent5,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }} onPress={handleDocuments}>
+              <Ionicons name="document" size={30} color="white" />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
-      <TabNavigator />
-    </NavigationContainer>
+    </>
   );
 
 };
