@@ -5,12 +5,13 @@
  * @format
  */
 
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { View, Text, Button, Dimensions, TouchableOpacity, StyleSheet  } from 'react-native';
 import dgram from 'react-native-udp';
 import DocumentPicker from 'react-native-document-picker';
 import fs from 'react-native-fs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import * as Progress from 'react-native-progress';
 
 const percent5 = Dimensions.get('window').width / 20;
 
@@ -27,7 +28,13 @@ const App: React.FC = () => {
   const [connectableDevice, setConnectableDevice] = useState<any>({});
   const [allDevices, setAllDevices] = useState<any>([]);
   const [debugString, setDebugString] = useState<any>([]);
-   
+  const [chunksLength, setChunksLength] = useState(0);
+  let [uploadProgress, setUploadProgress] = useState(0);
+  
+  const pause = () => {
+    return new Promise(r => setTimeout(r, 0))
+  }
+
   const CHUNK_SIZE = 1024;
   
   const remotePort = 5000;
@@ -126,6 +133,8 @@ const App: React.FC = () => {
     })
   }
 
+  
+
   const sendFile = async () => {
     console.log("benim pc ip yazıyom connection açmadan önce: ", statePcIP[0]);
     setDebugString(prev => [...prev, "benim pc ip yazıyom connection açmadan önce: " + statePcIP[0] + "\n"]);
@@ -154,21 +163,30 @@ const App: React.FC = () => {
     socket.onmessage = (event) => {
       console.log('Received message:', event.data);
     };
-
+    
     fs.readFile(selectedFileUri, 'base64')
-      .then((content) => {
+      .then(async (content) => {
         socket.send("fileName:"+ selectedFileName);
         console.log("filename gönderdim pc ye");
         setDebugString(prev => [...prev, "filename gönderdim pc ye\n"]);
-        const chunks = [];
+
+        const chunkCount = Math.ceil(content.length / CHUNK_SIZE);
+        let sentChunks = 0;
+
         for (let i = 0; i < content.length; i += CHUNK_SIZE) {
           const chunk = content.slice(i, i + CHUNK_SIZE);
-          chunks.push(chunk);
-        };
-
-        for (const chunk of chunks) {
           socket.send(chunk);
+          sentChunks++;
+          if (sentChunks % 100 === 0) {
+            await pause()
+            setUploadProgress(uploadProgress);
+
+          }
+          uploadProgress = (sentChunks / chunkCount);
+
         };
+        setUploadProgress(1);
+
         socket.close();
         console.log("chunk gönderme bitti");
         setDebugString(prev => [...prev, "chunk gönderme bitti\n"]);
@@ -225,14 +243,17 @@ const App: React.FC = () => {
       </View>
 
       <View style={{ backgroundColor: '#E0ECEA', flex: 9, justifyContent: 'center', alignContent: 'center' }}>
-        {debugString && (
+        {/* {debugString && (
           <Text style={{ color: 'black' }}>{debugString}</Text>
-        )}
+        )} */}
         {statePcIP[0] && (
           <Text style={{ color: 'black' }}>{statePcIP[0]}</Text>
         )}
         {scanInProgress && (
           <Button onPress={handleScan} title="Scan"></Button>
+        )}
+        {!scanInProgress && (
+          <Progress.Bar progress={uploadProgress} width={200} />
         )}
         {scanInProgress && (
           <View style={{ marginTop: 10 }}>
