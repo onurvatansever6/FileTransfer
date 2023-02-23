@@ -6,5 +6,4 @@ to your computer from your mobile phone.
 
 # How to install
 
-1) Make sure you have the NodeJS LTS version. 
-   You can find it here: https://nodejs.org/en/
+1) Make sure you have the NodeJS LTS version. You can find it here: https://nodejs.org/en/
