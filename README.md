@@ -28,7 +28,7 @@ You will need a Java generated signing key which is a keystore file used to gene
 keytool -genkey -v -keystore your_key_name.keystore -alias your_key_alias -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-Once you run the keytool utility, you’ll be prompted to type in a password. Make sure you remember the password.
+###Once you run the keytool utility, you’ll be prompted to type in a password. Make sure you remember the password.
 
 You can change your_key_name with any name you want, as well as your_key_alias. This key uses key-size 2048, instead of default 1024 for security reason.
 
