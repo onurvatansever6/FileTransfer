@@ -22,8 +22,8 @@ npm install
 ```
 **2) Generate a keystore.**
 
-You will need a Java generated signing key which is a keystore file used to generate a React Native executable binary for Android. You can just run "generateKey.bat" file 
-in your "android" folder to generate a keystore.
+You will need a Java generated signing key which is a keystore file used to generate a React Native executable binary for Android. You can just run **"generateKey.bat"** file 
+in your **"android"** folder to generate a keystore.
 
 Once you run the keytool utility, you'll be prompted to type in a password. Make sure you remember the password.
 
