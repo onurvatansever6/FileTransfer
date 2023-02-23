@@ -22,11 +22,8 @@ npm install
 ```
 **2) Generate a keystore.**
 
-You will need a Java generated signing key which is a keystore file used to generate a React Native executable binary for Android. You can change the names if you want. You can create one using the keytool in the terminal with the following command
-
-```bash
-keytool -genkey -v -keystore your_key_name.keystore -alias your_key_alias -keyalg RSA -keysize 2048 -validity 10000
-```
+You will need a Java generated signing key which is a keystore file used to generate a React Native executable binary for Android. You can just run "generateKey.bat" file 
+in your "android" folder to generate a keystore.
 
 Once you run the keytool utility, you'll be prompted to type in a password. Make sure you remember the password.
 
@@ -34,10 +31,6 @@ You can change your_key_name with any name you want, as well as your_key_alias. 
 
 **3) Adding Keystore to your project**
 
-Firstly, you need to copy the file your_key_name.keystore and paste it under the android/app directory in your React Native project folder. On Terminal:
-```bash
-mv my-release-key.keystore /android/app
-```
 You need to open your android\app\build.gradle file and add the keystore configuration. 
 ```kotlin
 android {
