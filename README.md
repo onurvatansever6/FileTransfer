@@ -16,12 +16,18 @@ npm install
 5) In windows you can make a release build for Android, for IOS check out here: https://reactnative.dev/docs/publishing-to-app-store.
 
 
-# How to build release
+# How to build release in Android
 1) Change your terminals directory to android folder.
 ```
  cd .\android\
 ```
-2) Before building follow these steps as shown here: https://medium.com/geekculture/react-native-generate-apk-debug-and-release-apk-4e9981a2ea51
+2) Generate a keystore.
+You will need a Java generated signing key which is a keystore file used to generate a React Native executable binary for Android. You can change the names if you want. You can create one using the keytool in the terminal with the following command
+
+```
+keytool -genkey -v -keystore your_key_name.keystore -alias your_key_alias -keyalg RSA -keysize 2048 -validity 10000
+```
+
 3) If "gradlew assembleRelease" does not work use this instead: 
 ```
 ./gradlew assembleRelease
