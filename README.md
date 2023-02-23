@@ -12,3 +12,4 @@ to your computer from your mobile phone.
 ```
 npm install
 ```
+4) For opening application in the emulator you can check out here: https://reactnative.dev/docs/environment-setup. Follow React Native CLI Quickstart guide.
