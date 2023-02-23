@@ -5,8 +5,8 @@
  * @format
  */
 
-import React, { ReactNode, useEffect, useState } from 'react';
-import { View, Text, Button, Dimensions, TouchableOpacity, StyleSheet  } from 'react-native';
+import React, { ReactNode, useState } from 'react';
+import { View, Text, Button, Dimensions, TouchableOpacity } from 'react-native';
 import dgram from 'react-native-udp';
 import DocumentPicker from 'react-native-document-picker';
 import fs from 'react-native-fs';
@@ -28,19 +28,22 @@ const App: React.FC = () => {
   const [connectableDevice, setConnectableDevice] = useState<any>({});
   const [allDevices, setAllDevices] = useState<any>([]);
   const [debugString, setDebugString] = useState<any>([]);
-  const [chunksLength, setChunksLength] = useState(0);
   let [uploadProgress, setUploadProgress] = useState(0);
   
+  // Pause function for progress bar
   const pause = () => {
     return new Promise(r => setTimeout(r, 0))
   }
 
   const CHUNK_SIZE = 1024;
   
+  // Creating a UDP socket
   const remotePort = 5000;
   const remoteHost = '10.0.2.2';
   const socket = dgram.createSocket('udp4');
 
+
+  // Handler for Image and Video choosing
   const handleImages = async () => {
     try {
       const result = await DocumentPicker.pick({
@@ -62,6 +65,7 @@ const App: React.FC = () => {
     }
   };
 
+  // Handler for Document choosing
   const handleDocuments = async () => {
     try {
       const result = await DocumentPicker.pick({
@@ -94,6 +98,7 @@ const App: React.FC = () => {
     }
   };
 
+  // Handler for All File choosing
   const handleOther = async () => {
     try {
       const result = await DocumentPicker.pick({
@@ -115,6 +120,7 @@ const App: React.FC = () => {
     }
   };
 
+  // Condition handler for button visibility
   const showIsSend = () => {
     if (isSendFile){
       setIsSendFile(false);
@@ -123,8 +129,9 @@ const App: React.FC = () => {
       setIsSendFile(true);
     }
   }
-
-  const showConnected = () => {
+  
+  // Send message to UDP server and connect to it
+  const connectToUDPServer = () => {
     setScanInProgress(false);
     socket.send('CONNECT', undefined, undefined, remotePort, remoteHost, function(err) {
       if (err) throw err
@@ -134,7 +141,7 @@ const App: React.FC = () => {
   }
 
   
-
+  // Connect to websocket and start file sending process
   const sendFile = async () => {
     console.log("benim pc ip yazıyom connection açmadan önce: ", statePcIP[0]);
     setDebugString(prev => [...prev, "benim pc ip yazıyom connection açmadan önce: " + statePcIP[0] + "\n"]);
@@ -164,6 +171,7 @@ const App: React.FC = () => {
       console.log('Received message:', event.data);
     };
     
+    // Read the selected file with react-native-fs then divide the read file to chunks and send them one by one
     fs.readFile(selectedFileUri, 'base64')
       .then(async (content) => {
         socket.send("fileName:"+ selectedFileName);
@@ -197,6 +205,7 @@ const App: React.FC = () => {
       })
   };
   
+  // Scan devices that you can connect to
   const handleScan = () => {
     socket.bind(34542);
     socket.once('listening', function() {
@@ -220,7 +229,7 @@ const App: React.FC = () => {
       setConnectableDevice(connectable => Object.assign(connectable, {deviceName: pcNameFromMsg, deviceIP: pcIpFromMsg}));
       setAllDevices(prevDevices => prevDevices.push(connectableDevice));
       setScanButtons(allDevices.map(device => (
-            <Button title={`Connect to ${device.deviceName}`} onPress={showConnected} />
+            <Button title={`Connect to ${device.deviceName}`} onPress={connectToUDPServer} />
           )));
     });
   }
@@ -243,6 +252,7 @@ const App: React.FC = () => {
       </View>
 
       <View style={{ backgroundColor: '#E0ECEA', flex: 9, justifyContent: 'center', alignContent: 'center' }}>
+        {/* If debugString is uncommented you can see the procedures in the application screen */}
         {/* {debugString && (
           <Text style={{ color: 'black' }}>{debugString}</Text>
         )} */}
