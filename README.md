@@ -3,7 +3,6 @@
 FileTransfer is a React-Native application for sending files from your phone to your computer. If they are connected to the same Internet you can easily send files
 to your computer from your mobile phone.
 
-
 # How to install
 
 1) Make sure you have the NodeJS LTS version. You can find it here: https://nodejs.org/en/
@@ -17,11 +16,11 @@ npm install
 
 
 # How to build release in Android
-1) Change your terminals directory to android folder.
+**1) Change your terminals directory to android folder.**
 ```bash
  cd .\android\
 ```
-2) Generate a keystore.
+**2) Generate a keystore.**
 
 You will need a Java generated signing key which is a keystore file used to generate a React Native executable binary for Android. You can change the names if you want. You can create one using the keytool in the terminal with the following command
 
@@ -29,14 +28,44 @@ You will need a Java generated signing key which is a keystore file used to gene
 keytool -genkey -v -keystore your_key_name.keystore -alias your_key_alias -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-Once you run the keytool utility, you’ll be prompted to type in a password. Make sure you remember the password.
+Once you run the keytool utility, you'll be prompted to type in a password. Make sure you remember the password.
 
 You can change your_key_name with any name you want, as well as your_key_alias. This key uses key-size 2048, instead of default 1024 for security reason.
 
-3) Adding Keystore to your project
+**3) Adding Keystore to your project**
 
-3) If "gradlew assembleRelease" does not work use this instead: 
+Firstly, you need to copy the file your_key_name.keystore and paste it under the android/app directory in your React Native project folder. On Terminal:
+```bash
+mv my-release-key.keystore /android/app
 ```
+You need to open your android\app\build.gradle file and add the keystore configuration. 
+```
+android {
+....
+  signingConfigs {
+    release {
+      storeFile file('your_key_name.keystore')
+      storePassword 'your_key_store_password'
+      keyAlias 'your_key_alias'
+      keyPassword 'your_key_file_alias_password'
+    }
+  }
+  buildTypes {
+    release {
+      ....
+      signingConfig signingConfigs.release
+    }
+```
+**3)  Release APK Generation**
+Place your terminal directory to android using:
+```bash
+cd android
+```
+Then run this command on your terminal: 
+```bash
 ./gradlew assembleRelease
 ```
-4) Release apk will be in your "android/app/build/outputs/apk/app-release.apk" folder
+Release apk will be in this folder:
+```
+"android/app/build/outputs/apk/app-release.apk"
+```
