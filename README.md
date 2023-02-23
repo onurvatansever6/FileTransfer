@@ -39,7 +39,7 @@ Firstly, you need to copy the file your_key_name.keystore and paste it under the
 mv my-release-key.keystore /android/app
 ```
 You need to open your android\app\build.gradle file and add the keystore configuration. 
-```
+```kotlin
 android {
 ....
   signingConfigs {
